@@ -1,4 +1,4 @@
-﻿# MTStoMP4_batch
+# MTStoMP4_batch
 
 ## 背景
 
@@ -56,6 +56,8 @@ ffmpeg -i [FilePath]\[FileName].mts -acodec copy [FilePath]\[FileName].aac
 
 ## バッチファイル作成中にお世話になったサイト・文献
 
+- バッチファイルの作成がうまくいかない｜Yahoo!知恵袋  
+[http://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q11105154031](http://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q11105154031)
 - 指定したＵＲＬを開くコマンド｜OKWAVE  
 [http://okwave.jp/qa/q1606422.html](http://okwave.jp/qa/q1606422.html)
 - set | コマンドプロンプトを使ってみよう  

@@ -2,7 +2,7 @@
 rem Copyright (C) 2013 yumetodo
 rem Distributed under the Boost Software License, Version 1.0.
 echo ********************************
-echo *  mts to mp4 batch Vor.0.1.0  *
+echo *  mts to mp4 batch Vor.0.1.1  *
 echo ********************************
 
 echo %DATE% %TIME% MTSファイルをMP4にしてみる
@@ -14,8 +14,8 @@ SETLOCAL
 SET INPath=%~dp1
 SET OUTFILE=%~dpn1
 IF %INPath%.==. GOTO ferror
-IF "%~x1"=="mts" GOTO SETTINGa
-IF "%~x1"=="MTS" GOTO SETTINGa
+IF "%~x1"==".mts" GOTO SETTINGa
+IF "%~x1"==".MTS" GOTO SETTINGa
 GOTO ferror
 
 :SETTINGa
@@ -24,16 +24,16 @@ echo tsMuxeR.exeのある場所を入力して下さい
 echo -----------------------------------------
 echo 例）C:\Program Files (x86)\XviD4PSP 5\apps\tsMuxeR
 set /p PLACE1=
-IF NOT EXIST "%PLACE1%tsMuxeR.exe" goto errora
+IF NOT EXIST "%PLACE1%\tsMuxeR.exe" goto errora
 goto SETTINGb
 
 :SETTINGb
 echo -----------------------------------------
 echo BeSweet.exeのある場所を入力して下さい
 echo -----------------------------------------
-echo 例）D:\プログラム 頻度低\BeLight
+echo 例）D:\プログラム　頻度低\BeLight
 set /p PLACE2=
-IF NOT EXIST "%PLACE2%BeSweet.exe" goto errorb
+IF NOT EXIST "%PLACE2%\BeSweet.exe" goto errorb
 goto SETTINGc
 
 :SETTINGc
@@ -42,7 +42,7 @@ echo neroAacEnc.exeのある場所を入力して下さい
 echo -----------------------------------------
 echo 例）C:\Program Files (x86)\XviD4PSP 5\apps\neroAacEnc
 set /p PLACE3=
-IF NOT EXIST "%PLACE3%neroAacEnc.exe" goto errorc
+IF NOT EXIST "%PLACE3%\neroAacEnc.exe" goto errorc
 goto SETTINGd
 
 :SETTINGd
@@ -52,9 +52,13 @@ echo ---------------------------------------------------------
 echo 例）-q 0.50 -lc
 echo よくわからないときは help と打ってください。空白不可です。
 set /p OPTION=
-IF %OPTION%.==. GOTO errord
-IF %OPTION%==help start http://note.chiebukuro.yahoo.co.jp/detail/n136981
+IF "%OPTION%."=="." GOTO errord
+IF "%OPTION%"=="help" GOTO LINK
 goto SETTINGe
+
+:LINK
+start http://note.chiebukuro.yahoo.co.jp/detail/n136981
+GOTO SETTINGd
 
 :SETTINGe
 echo -----------------------------------------
@@ -62,8 +66,8 @@ echo MP4Box.exeのある場所を入力して下さい
 echo -----------------------------------------
 echo 例）C:\Program Files (x86)\XviD4PSP 5\apps\MP4Box
 set /p PLACE4=
-IF %PLACE4%.==. GOTO errorf
-IF NOT EXIST "%PLACE3%neroAacEnc.exe" goto errorf
+IF "%PLACE4%."=="." GOTO errorf
+IF NOT EXIST "%PLACE3%\neroAacEnc.exe" goto errorf
 goto demux
 
 :demux
@@ -164,4 +168,5 @@ GOTO quit
 
 :quit
 ENDLOCAL
+echo ↓正確には「終了させるためには～」なんですけどね
 PAUSE
