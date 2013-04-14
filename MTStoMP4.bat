@@ -2,17 +2,18 @@
 rem Copyright (C) 2013 yumetodo
 rem Distributed under the Boost Software License, Version 1.0.
 echo ********************************
-echo *  mts to mp4 batch Vor.0.1.1  *
+echo *  mts to mp4 batch Vor.1.0.0  *
 echo ********************************
 
 echo %DATE% %TIME% MTSファイルをMP4にしてみる
 
-title MTSファイルをMP4にしてみる
+title　MTSファイルをMP4にしてみる
 
 SETLOCAL
 
 SET INPath=%~dp1
 SET OUTFILE=%~dpn1
+SET INNAME=%~n1
 IF %INPath%.==. GOTO ferror
 IF "%~x1"==".mts" GOTO SETTINGa
 IF "%~x1"==".MTS" GOTO SETTINGa
@@ -71,29 +72,32 @@ IF NOT EXIST "%PLACE3%\neroAacEnc.exe" goto errorf
 goto demux
 
 :demux
-echo "MUXOPT --no-pcr-on-video-pid --new-audio-pes --vbr --vbv-len=500" >%OUTFILE%.meta
-echo "V_MPEG4/ISO/AVC, "%OUTFILE%%~x1", fps=59.9401, insertSEI, contSPS, track=4113" >>%OUTFILE%.meta
-echo "A_AC3, "%OUTFILE%%~x1", track=4352" >>"%OUTFILE%".meta
+md %OUTFILE%
+md %OUTFILE%\forMP4box
+cd %INPath%
+
+echo MUXOPT --no-pcr-on-video-pid --new-audio-pes --vbr --vbv-len=500 >%OUTFILE%\%INNAME%.meta
+echo V_MPEG4/ISO/AVC, "%OUTFILE%%~x1", fps=59.9401, insertSEI, contSPS, track=4113 >>%OUTFILE%\%INNAME%.meta
+echo A_AC3, "%OUTFILE%%~x1", track=4352 >>"%OUTFILE%"\%INNAME%.meta
 
 cd /d %PLACE1%
-tsMuxeR.exe "%OUTFILE%.meta" "%OUTFILE%.264"
-tsMuxeR.exe "%OUTFILE%.meta" "%OUTFILE%.ac3"
+tsMuxeR.exe %OUTFILE%\%INNAME%.meta %OUTFILE%
 goto convert
 
 :convert
-IF NOT EXIST "%OUTFILE%.ac3" goto erroroftsMuxeR
+IF NOT EXIST "%OUTFILE%\%INNAME%.track_4352.ac3" goto erroroftsMuxeR
 cd /d %PLACE2%
-BeSweet.exe -core( -input "%OUTFILE%.ac3" -output "%OUTFILE%.wav"  -2ch -logfile "%OUTFILE%BeSweet.log" ) -azid( -s stereo -c normal -L -3db ) -ota( -hybridgain ) -ssrc( --rate 44100 )
+BeSweet.exe -core( -input "%OUTFILE%\%INNAME%.track_4352.ac3" -output "%OUTFILE%\%INNAME%.wav"  -2ch -logfile "%OUTFILE%\%INNAME%BeSweet.log" ) -azid( -s stereo -c normal -L -3db ) -ota( -hybridgain ) -ssrc( --rate 44100 )
 
-IF NOT EXIST "%OUTFILE%.wav" goto errorofBeSweet
+IF NOT EXIST "%OUTFILE%\%INNAME%.wav" goto errorofBeSweet
 cd /d %PLACE3%
-neroAacEnc.exe %OPTION% -if "%OUTFILE%.wav" -of "%OUTFILE%.m4a"
+neroAacEnc.exe %OPTION% -if "%OUTFILE%\%INNAME%.wav" -of "%OUTFILE%\%INNAME%.m4a"
 goto mux
 
 :mux
-IF NOT EXIST "%OUTFILE%.m4a" goto errorofneroAacEnc
-cd /d %PLACE3%
-MP4Box.exe -fps 24.000 -add "%OUTFILE%.264" -add "%OUTFILE%.m4a" -new "%OUTFILE%.mp4" -tmp "%INPath%1"
+IF NOT EXIST "%OUTFILE%\%INNAME%.m4a" goto errorofneroAacEnc
+cd /d %PLACE4%
+MP4Box.exe -fps 24.000 -add "%OUTFILE%\%INNAME%.track_4113.264" -add "%OUTFILE%\%INNAME%.m4a" -new "%OUTFILE%.mp4" -tmp "%OUTFILE%\forMP4box"
 IF NOT EXIST "%OUTFILE%.mp4" goto errorofMP4Box
 goto end
 
