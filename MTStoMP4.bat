@@ -2,7 +2,7 @@
 rem Copyright (C) 2013 yumetodo
 rem Distributed under the Boost Software License, Version 1.0.
 echo ********************************
-echo *  mts to mp4 batch Vor.1.0.0  *
+echo *  mts to mp4 batch Vor.1.1.0  *
 echo ********************************
 
 echo %DATE% %TIME% MTSファイルをMP4にしてみる
@@ -11,13 +11,49 @@ title　MTSファイルをMP4にしてみる
 
 SETLOCAL
 
+SET BATPATH=%~dp0
 SET INPath=%~dp1
 SET OUTFILE=%~dpn1
 SET INNAME=%~n1
+SET foldername=MtoMwork%date:~-10,4%%date:~-5,2%%date:~-2,2%%time:~-11,2%%time:~-8,2%%time:~-5,2%
+IF NOT "%foldername:~8,2"=="%date:~-2,2" SET foldername=MtoMwork%date:~-10,4%%date:~-5,2%%date:~-2,2%%time:~-11,2%%time:~-8,2%%time:~-5,2%
 IF %INPath%.==. GOTO ferror
-IF "%~x1"==".mts" GOTO SETTINGa
-IF "%~x1"==".MTS" GOTO SETTINGa
+IF "%~x1"==".mts" GOTO INICHECK
+IF "%~x1"==".MTS" GOTO INICHECK
 GOTO ferror
+
+:INICHECK
+IF EXIST "%BATPATH%\MTStoMP4config.ini" (goto INIRead) ELSE echo 毎回EXEファイルの位置を指定するのは面倒です。設定ファイルを保存しますか？y or nでどうぞ
+SET  /pinipreset=
+GOTO SETTINGa
+
+:INIRead
+SET inipreset=n
+
+echo 設定ファイルを読み込んでいます
+
+for /F "usebackq" %i in ("findstr /i PLACE1 "%BATPATH%\MTStoMP4config.ini"") do set PLACE1=%i
+set PLACE1=%PLACE1:~7%
+IF not exist "%PLACE1%\tsMuxeR.exe" GOTO inierror
+
+for /F "usebackq" %i in ("findstr /i PLACE1 "%BATPATH%\MTStoMP4config.ini"") do set PLACE1=%i
+set PLACE2=%PLACE2:~7%
+IF not exist "%PLACE2%\BeSweet.exe" GOTO inierror
+
+for /F "usebackq" %i in ("findstr /i PLACE1 "%BATPATH%\MTStoMP4config.ini"") do set PLACE1=%i
+set PLACE3=%PLACE3:~7%
+IF not exist "%PLACE3%\neroAacEnc.exe" GOTO inierror
+
+for /F "usebackq" %i in ("findstr /i PLACE1 "%BATPATH%\MTStoMP4config.ini"") do set PLACE1=%i
+set OPTION=%OPTION:~7%
+IF %OPTION%=="" GOTO inierror
+
+for /F "usebackq" %i in ("findstr /i PLACE1 "%BATPATH%\MTStoMP4config.ini"") do set PLACE1=%i
+set PLACE4=%PLACE4:~7%
+IF not exist "%PLACE4%\MP4Box.exe" GOTO inierror
+
+echo 読み込み終了！
+goto demux
 
 :SETTINGa
 echo -----------------------------------------
@@ -54,7 +90,7 @@ echo 例）-q 0.50 -lc
 echo よくわからないときは help と打ってください。空白不可です。
 set /p OPTION=
 IF "%OPTION%."=="." GOTO errord
-IF "%OPTION%"=="help" GOTO LINK
+IF /i "%OPTION%"=="help" GOTO LINK
 goto SETTINGe
 
 :LINK
@@ -69,41 +105,64 @@ echo 例）C:\Program Files (x86)\XviD4PSP 5\apps\MP4Box
 set /p PLACE4=
 IF "%PLACE4%."=="." GOTO errorf
 IF NOT EXIST "%PLACE3%\neroAacEnc.exe" goto errorf
+IF /i %inipreset%==y GOTO INImake
 goto demux
 
+:INImake
+echo .iniファイルを製作中です。しばらくお待ちください。
+echo MTStoMP4vなんか　のための設定ファイル　by yumetodo > %BATPATH%\MTStoMP4config.ini
+echo tsMuxeR.exeのある場所 >> %BATPATH%MTStoMP4config.ini
+echo PLACE1=%PLACE1% >> %BATPATH%MTStoMP4config.ini
+echo BeSweet.exeのある場所 >> %BATPATH%MTStoMP4config.ini
+echo PLACE2=%PLACE2% >> %BATPATH%MTStoMP4config.ini
+echo neroAacEnc.exeのある場所 >> %BATPATH%MTStoMP4config.ini
+echo PLACE3=%PLACE3% >> %BATPATH%MTStoMP4config.ini
+echo neroAacEnc.exeのエンコードオプション >> %BATPATH%MTStoMP4config.ini
+echo OPTION=%OPTION% >> %BATPATH%MTStoMP4config.ini
+echo MP4Box.exeのある場所 >> %BATPATH%MTStoMP4config.ini
+echo PLACE4=%PLACE4% >> %BATPATH%MTStoMP4config.ini
+
+PAUSE
+
+goto demux
 :demux
-md %OUTFILE%
-md %OUTFILE%\forMP4box
+rem mdコマンドのフォルダー名を%date%%time%に要変更！
+md %INPath%%foldername%
+md %INPath%%foldername%\forMP4box
 cd %INPath%
 
-echo MUXOPT --no-pcr-on-video-pid --new-audio-pes --vbr --vbv-len=500 >%OUTFILE%\%INNAME%.meta
-echo V_MPEG4/ISO/AVC, "%OUTFILE%%~x1", fps=59.9401, insertSEI, contSPS, track=4113 >>%OUTFILE%\%INNAME%.meta
-echo A_AC3, "%OUTFILE%%~x1", track=4352 >>"%OUTFILE%"\%INNAME%.meta
+echo MUXOPT --no-pcr-on-video-pid --new-audio-pes --vbr --vbv-len=500 >%INPath%\%foldername%\%INNAME%.meta
+echo V_MPEG4/ISO/AVC, "%OUTFILE%%~x1", fps=59.9401, insertSEI, contSPS, track=4113 >>%INPath%%foldername%\%INNAME%.meta
+echo A_AC3, "%OUTFILE%%~x1", track=4352 >>%INPath%%foldername%\%INNAME%.meta
 
 cd /d %PLACE1%
-tsMuxeR.exe %OUTFILE%\%INNAME%.meta %OUTFILE%
+tsMuxeR.exe %INPath%%foldername%\%INNAME%.meta %INPath%%foldername%
 goto convert
 
 :convert
-IF NOT EXIST "%OUTFILE%\%INNAME%.track_4352.ac3" goto erroroftsMuxeR
+IF NOT EXIST "%INPath%%foldername%\%INNAME%.track_4352.ac3" goto erroroftsMuxeR
 cd /d %PLACE2%
-BeSweet.exe -core( -input "%OUTFILE%\%INNAME%.track_4352.ac3" -output "%OUTFILE%\%INNAME%.wav"  -2ch -logfile "%OUTFILE%\%INNAME%BeSweet.log" ) -azid( -s stereo -c normal -L -3db ) -ota( -hybridgain ) -ssrc( --rate 44100 )
+BeSweet.exe -core( -input "%INPath%%foldername%\%INNAME%.track_4352.ac3" -output "%INPath%\%foldername%\%INNAME%.wav"  -2ch -logfile "%INPath%%foldername%\%INNAME%BeSweet.log" ) -azid( -s stereo -c normal -L -3db ) -ota( -hybridgain ) -ssrc( --rate 44100 )
 
-IF NOT EXIST "%OUTFILE%\%INNAME%.wav" goto errorofBeSweet
+IF NOT EXIST "%INPath%%foldername%\%INNAME%.wav" goto errorofBeSweet
 cd /d %PLACE3%
-neroAacEnc.exe %OPTION% -if "%OUTFILE%\%INNAME%.wav" -of "%OUTFILE%\%INNAME%.m4a"
+neroAacEnc.exe %OPTION% -if "%INPath%%foldername%\%INNAME%.wav" -of "%INPath%\%foldername%\%INNAME%.m4a"
 goto mux
 
 :mux
-IF NOT EXIST "%OUTFILE%\%INNAME%.m4a" goto errorofneroAacEnc
+IF NOT EXIST "%INPath%%foldername%\%INNAME%.m4a" goto errorofneroAacEnc
 cd /d %PLACE4%
-MP4Box.exe -fps 24.000 -add "%OUTFILE%\%INNAME%.track_4113.264" -add "%OUTFILE%\%INNAME%.m4a" -new "%OUTFILE%.mp4" -tmp "%OUTFILE%\forMP4box"
+MP4Box.exe -fps 24.000 -add "%INPath%%foldername%\%INNAME%.track_4113.264" -add "%INPath%\%foldername%\%INNAME%.m4a" -new "%OUTFILE%.mp4" -tmp "%INPath%%foldername%\forMP4box"
 IF NOT EXIST "%OUTFILE%.mp4" goto errorofMP4Box
 goto end
 
 :ferror
 echo ファイル名、拡張子等が異常です。処理をスキップします
 GOTO enderror
+
+:inierror
+echo INIファイルを正しく作ってください。終了します。
+GOTO quit
 
 :errora
 echo tsMuxeR.exeのある場所を正しく指定してください。
@@ -149,8 +208,8 @@ goto DELASK
 :DELASK
 echo 変換過程で生じたファイルを削除しますか？（y/n）
 set /p YORN=
-IF %YORN%==y GOTO DEL
-IF %YORN%.==n GOTO quit
+IF /i %YORN%==y GOTO DEL
+IF /i %YORN%==n GOTO quit
 GOTO DELERROR
 
 :DELERROR
@@ -162,11 +221,7 @@ echo %DATE% %TIME% MTSファイルはMP4に変換されませんでした。
 GOTO quit
 
 :DEL
-del %OUTFILE%.meta
-del %OUTFILE%.264
-del %OUTFILE%.ac3
-del %OUTFILE%.m4a
-del %INPath%1
+rd /s /q %INPath%%foldername%
 echo 削除しました。
 GOTO quit
 
