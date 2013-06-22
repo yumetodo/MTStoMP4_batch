@@ -2,7 +2,7 @@
 rem Copyright (C) 2013 yumetodo
 rem Distributed under the Boost Software License, Version 1.0.
 echo ********************************
-echo *  mts to mp4 batch Vor.1.1.0  *
+echo *  mts to mp4 batch Vor.1.1.1  *
 echo ********************************
 
 echo %DATE% %TIME% MTSファイルをMP4にしてみる
@@ -24,7 +24,9 @@ GOTO ferror
 
 :INICHECK
 IF EXIST "%BATPATH%\MTStoMP4config.ini" (goto INIRead) ELSE echo 毎回EXEファイルの位置を指定するのは面倒です。設定ファイルを保存しますか？y or nでどうぞ
-SET  /pinipreset=
+SET  /p inipreset=
+IF %inipreset%.==. GOTO SETTINGa
+IF %inipreset%.==n. GOTO SETTINGa
 GOTO SETTINGa
 
 :INIRead
@@ -32,27 +34,37 @@ SET inipreset=n
 
 echo 設定ファイルを読み込んでいます
 
-for /F "usebackq" %i in ("findstr /i PLACE1 "%BATPATH%\MTStoMP4config.ini"") do set PLACE1=%i
-set PLACE1=%PLACE1:~7%
-IF not exist "%PLACE1%\tsMuxeR.exe" GOTO inierror
+for /F "delims==; tokens=2 usebackq" %%i in (`findstr /i PLACE1 "%BATPATH%MTStoMP4config.ini"`) do set PLACE1=%%i
+cd /d %PLACE1%
+IF not exist "tsMuxeR.exe" GOTO inierror
 
-for /F "usebackq" %i in ("findstr /i PLACE1 "%BATPATH%\MTStoMP4config.ini"") do set PLACE1=%i
-set PLACE2=%PLACE2:~7%
-IF not exist "%PLACE2%\BeSweet.exe" GOTO inierror
+for /F "delims==; tokens=2 usebackq" %%i in (`findstr /i PLACE2 "%BATPATH%MTStoMP4config.ini"`) do set PLACE2=%%i
+cd /d %PLACE2%
+IF not exist "BeSweet.exe" GOTO inierror
 
-for /F "usebackq" %i in ("findstr /i PLACE1 "%BATPATH%\MTStoMP4config.ini"") do set PLACE1=%i
-set PLACE3=%PLACE3:~7%
-IF not exist "%PLACE3%\neroAacEnc.exe" GOTO inierror
+for /F "delims==; tokens=2 usebackq" %%i in (`findstr /i PLACE3 "%BATPATH%MTStoMP4config.ini"`) do set PLACE3=%%i
+cd /d %PLACE3%
+IF not exist "neroAacEnc.exe" GOTO inierror
 
-for /F "usebackq" %i in ("findstr /i PLACE1 "%BATPATH%\MTStoMP4config.ini"") do set PLACE1=%i
-set OPTION=%OPTION:~7%
-IF %OPTION%=="" GOTO inierror
+for /F "delims==; tokens=2 usebackq" %%i in (`findstr /i OPTION "%BATPATH%MTStoMP4config.ini"`) do set OPTION=%%i
+IF "%OPTION%."=="." GOTO inierror
 
-for /F "usebackq" %i in ("findstr /i PLACE1 "%BATPATH%\MTStoMP4config.ini"") do set PLACE1=%i
-set PLACE4=%PLACE4:~7%
-IF not exist "%PLACE4%\MP4Box.exe" GOTO inierror
+for /F "delims==; tokens=2 usebackq" %%i in (`findstr /i PLACE4 "%BATPATH%MTStoMP4config.ini"`) do set PLACE4=%%i
+cd /d %PLACE4%
+IF not exist "MP4Box.exe" GOTO inierror
 
+echo tsMuxeR.exeのある場所
+echo %PLACE1%
+echo BeSweet.exeのある場所
+echo %PLACE2%
+echo neroAacEnc.exeのある場所
+echo %PLACE3%
+echo neroAacEnc.exeのエンコードオプション
+echo %OPTION%
+echo MP4Box.exeのある場所
+echo %PLACE4%
 echo 読み込み終了！
+
 goto demux
 
 :SETTINGa
@@ -105,7 +117,7 @@ echo 例）C:\Program Files (x86)\XviD4PSP 5\apps\MP4Box
 set /p PLACE4=
 IF "%PLACE4%."=="." GOTO errorf
 IF NOT EXIST "%PLACE3%\neroAacEnc.exe" goto errorf
-IF /i %inipreset%==y GOTO INImake
+IF /i %inipreset%.=="y." GOTO INImake
 goto demux
 
 :INImake
@@ -121,12 +133,11 @@ echo neroAacEnc.exeのエンコードオプション >> %BATPATH%MTStoMP4config.ini
 echo OPTION=%OPTION% >> %BATPATH%MTStoMP4config.ini
 echo MP4Box.exeのある場所 >> %BATPATH%MTStoMP4config.ini
 echo PLACE4=%PLACE4% >> %BATPATH%MTStoMP4config.ini
-
-PAUSE
+echo .iniファイルの作成に成功しました。
 
 goto demux
+
 :demux
-rem mdコマンドのフォルダー名を%date%%time%に要変更！
 md %INPath%%foldername%
 md %INPath%%foldername%\forMP4box
 cd %INPath%
@@ -161,7 +172,7 @@ echo ファイル名、拡張子等が異常です。処理をスキップします
 GOTO enderror
 
 :inierror
-echo INIファイルを正しく作ってください。終了します。
+echo INIファイルが正しく作られていない、もしくは設定した場所にEXEファイルがありません。終了します。
 GOTO quit
 
 :errora

@@ -73,3 +73,5 @@ ffmpeg -i [FilePath]\[FileName].mts -acodec copy [FilePath]\[FileName].aac
 [http://d.hatena.ne.jp/eggtoothcroc/20100514/p1](http://d.hatena.ne.jp/eggtoothcroc/20100514/p1)
 - パソコン・ハードディスク入門｜高作義明  
 ISBN：4-06-132800-ｘ
+- forコマンド中でsetコマンドを使う｜Yahoo!知恵袋  
+[http://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q12108851347](http://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q12108851347)
