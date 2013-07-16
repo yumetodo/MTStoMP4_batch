@@ -2,7 +2,7 @@
 rem Copyright (C) 2013 yumetodo
 rem Distributed under the Boost Software License, Version 1.0.
 echo ********************************
-echo *  mts to mp4 batch Vor.1.1.1  *
+echo *  mts to mp4 batch Vor.1.1.2  *
 echo ********************************
 
 echo %DATE% %TIME% MTSファイルをMP4にしてみる
@@ -116,7 +116,7 @@ echo -----------------------------------------
 echo 例）C:\Program Files (x86)\XviD4PSP 5\apps\MP4Box
 set /p PLACE4=
 IF "%PLACE4%."=="." GOTO errorf
-IF NOT EXIST "%PLACE3%\neroAacEnc.exe" goto errorf
+IF NOT EXIST "%PLACE4%\MP4Box.exe" goto errorf
 IF /i %inipreset%.=="y." GOTO INImake
 goto demux
 
