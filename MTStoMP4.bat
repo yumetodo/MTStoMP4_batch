@@ -2,19 +2,20 @@
 rem Copyright (C) 2013 yumetodo
 rem Distributed under the Boost Software License, Version 1.0.
 echo ********************************
-echo *  mts to mp4 batch Vor.1.1.2  *
+echo *  mts to mp4 batch Vor.1.1.3  *
+echo *         2014/04/06           *
 echo ********************************
-
+REM http://blogs.yahoo.co.jp/yume0222jp/31994370.html
 echo %DATE% %TIME% MTSファイルをMP4にしてみる
 
-title　MTSファイルをMP4にしてみる
+title MTSファイルをMP4にしてみる
 
 SETLOCAL
 
 SET BATPATH=%~dp0
 SET INPath=%~dp1
 SET OUTFILE=%~dpn1
-SET INNAME=%~n1
+SET INNAME="%~n1"
 SET foldername=MtoMwork%date:~-10,4%%date:~-5,2%%date:~-2,2%%time:~-11,2%%time:~-8,2%%time:~-5,2%
 IF NOT "%foldername:~8,2"=="%date:~-2,2" SET foldername=MtoMwork%date:~-10,4%%date:~-5,2%%date:~-2,2%%time:~-11,2%%time:~-8,2%%time:~-5,2%
 IF %INPath%.==. GOTO ferror
@@ -169,7 +170,8 @@ goto end
 
 :ferror
 echo ファイル名、拡張子等が異常です。処理をスキップします
-GOTO enderror
+echo %DATE% %TIME% MTSファイルはMP4に変換されませんでした。
+GOTO quit
 
 :inierror
 echo INIファイルが正しく作られていない、もしくは設定した場所にEXEファイルがありません。終了します。
@@ -229,7 +231,7 @@ goto DELASK
 
 :enderror
 echo %DATE% %TIME% MTSファイルはMP4に変換されませんでした。
-GOTO quit
+GOTO DELASK
 
 :DEL
 rd /s /q %INPath%%foldername%
