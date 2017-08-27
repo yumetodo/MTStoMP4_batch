@@ -2,7 +2,8 @@
 
 ## 背景
 
-.mtsを.mp4に変換する  [http://note.chiebukuro.yahoo.co.jp/detail/n162202](http://note.chiebukuro.yahoo.co.jp/detail/n162202)  
+.mtsを.mp4に変換する  
+[http://yumetodo.hateblo.jp/entry/2013/03/13/000000](http://yumetodo.hateblo.jp/entry/2013/03/13/000000)  
 でやってることをバッチ化しました。
 
 ## 対象とするMTSファイル
